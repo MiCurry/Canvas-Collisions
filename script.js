@@ -3,8 +3,20 @@ function dot(u, v) {
     return ((u.x - (u.x + u.dx)) * (v.x - (v.x + v.dx)) + (u.y - (u.y + u.dy)) * (v. y - (v.y + v.dy)));
 }
 
+function dot2(ux1, ux2, uy1, uy2, vx1, vx2, vy1, vy2) {
+    return (ux2 - ux1) * (vx2 - vx1) + (uy2 - vy1) * (vy2 - vy1);
+}
+
 function vectorAngles(u, v) {
     return Math.acos(dot(u, v) / (u.mag() * v.mag()));
+}
+
+function vectorAngles2(u, v, umag, vmag) {
+    console.log(u.x, u.dx, u.y, u.dy, v.x, v.dy, u.mag(), v.mag());
+    return Math.acos(dot2(u.x, u.x + u.dx, 
+	    		  u.y, u.y + u.dy, 
+	    	   	  v.x, v.x + v.dx,
+    			  v.y, v.y + v.dy) / (umag * vmag));
 }
 
 function nearlyEqual(a, b, esp) {
@@ -61,45 +73,40 @@ class Circle extends Object {
         return (this.x - obj.x) * (this.x - obj.x) + (this.y - obj.y) * (this.y - obj.y);
     }
 
+    incedentAngle(v) {
+    	return vectorAngles2(this, v, this.mag(), v.mag())
+    }
+
     doCollisions(objects) {
         for(let i = 0; i < objects.length; i++) {
-            if (objects[i] == this || this.collisions.indexOf(objects[i]) != -1) { 
+            if (objects[i] == this) { 
                 continue; 
             }
             
             let distanceSq = this.squaredDistanceFrom(objects[i]);
             let radiusSumSq = (this.r + objects[i].r) * (this.r + objects[i].r);
 
-            if (nearlyEqual(distanceSq, radiusSumSq, esp)) {
-                this.fill = !this.fill;
-                objects[i].fill = !objects[i].fill;
+	    if (distanceSq <= radiusSumSq) {
 
                 if (this.dx == 0 && this.dy == 0 || objects[i].dx == 0 && objects[i].dy == 0) {
                     continue;
                 }
 
-                let theta = vectorAngles(this, objects[i]);
-
-                let dxi = this.dx;
-                let dyi = this.dy;
-                let objDxi = objects[i].dx;
-                let objDyi = objects[i].dy;
-
-                console.log("B: this.dx: ", this.dx, "this.dy: ", this.dy);
-                console.log("B: obj.dx: ", objects[i].dx, "obj.dy: ", objects[i].dy);
+                // let theta = vectorAngles(this, objects[i]);
+		        let theta = this.incedentAngle(objects[i]);
                 
-                this.dx = ((this.m - objects[i].m) / (this.m + objects[i].m)) * this.dx
-                        + ((2 * objects[i].m) / (this.m + objects[i].m)) * objects[i].dx;
-                this.dy = (2 * this.m) / (this.m + objects[i].m) * this.dy
-                        + ((objects[i].m - this.m) / (this.m + objects[i].m)) * objects[i].dy;
 
-                objects[i].dx = ((this.m - objects[i].m) / (this.m + objects[i].m)) * objects[i].dx
-                        + ((2 * this.m) / (this.m + objects[i].m)) * dxi;
-                objects[i].dy = ((2 * objects[i].m) / (this.m + objects[i].m)) * objects[i].dy
-                        + ((objects[i].m - this.m) / (this.m + objects[i].m)) * dyi;
+                console.log("theta: ", theta, "cos(theta):", Math.cos(theta), Math.sin(theta), this.mag(), objects[i].mag());
 
+                this.dx = - this.dx * Math.cos(2*theta) + this.dy * Math.sin(2*theta);
+                this.dy = this.dx * Math.sin(2*theta) + this.dy * -Math.cos(2*theta);
 
-                objects[i].collided(this);
+                console.log('b', this.dy, objects[i].dy);
+
+                objects[i].dx = - objects[i].dx * Math.cos(2*theta) + objects[i].dy * Math.sin(2*theta);
+                objects[i].dy = objects[i].dx * Math.sin(2*theta) + objects[i].dy * -Math.cos(2*theta);
+
+                console.log('a', this.dy, objects[i].dy);
             } 
         }
     }
@@ -162,18 +169,33 @@ function randomBalls(n) {
     }
 }
 
-function test2D() {
+function test2DHoriz() {
     objects.push(new Circle(1, 200, 250, 10, 5, 0, false, cvns));
-    objects.push(new Circle(1, 600, 250, 10, -5, 0, false, cvns));
+    objects.push(new Circle(1, 600, 250, 10, -5, 0, true, cvns));
+}
+
+function test2DVert() {
+    objects.push(new Circle(1, 200, 150, 10, 0, 5, false, cvns));
+    objects.push(new Circle(1, 200, 250, 10, 0, -5, true, cvns));
+}
+
+function testGlanceVert() {
+    objects.push(new Circle(1, 210, 150, 10, 0, 5, false, cvns));
+    objects.push(new Circle(1, 200, 250, 10, 0, -5, true, cvns));
+}
+
+function testGlanceHoriz() {
+    objects.push(new Circle(1, 250, 260, 10, -5, 0, false, cvns));
+    objects.push(new Circle(1, 200, 250, 10, 5, 0, true, cvns));
 }
 
 function diagnalTest() {
     objects.push(new Circle(1, 150, 150, 10, 1, 1, false, cvns));
-    objects.push(new Circle(1, 250, 250, 10, -1, -1, false, cvns));
+    objects.push(new Circle(1, 250, 250, 10, -1, -1, true, cvns));
 }
 
 
-var esp = 10;
+var esp = 20;
 
 var maxDx = 10;
 var minDx = 1;
@@ -190,10 +212,16 @@ function draw() {
 
     //randomBalls(20);
     
-    //test2D();
+    //test2DHoriz();
     
-    diagnalTest();
+    test2DVert();
+
+    //testGlanceVert();
+
+    //testGlanceHoriz();
+    
+    //diagnalTest();
 
 
-    setInterval(doAnim, 100)
+    setInterval(doAnim, 50)
 }
