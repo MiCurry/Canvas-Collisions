@@ -17,20 +17,6 @@ function pause() {
     }
 }
 
-function dot(u, v) {
-    return ((u.x - (u.x + u.dx)) * (v.x - (v.x + v.dx)) + (u.y - (u.y + u.dy)) * (v. y - (v.y + v.dy)));
-}
-
-function dot2(u, v){
-    return u.dx * v.dx + u.dy * v.dy;
-}
-
-function vectorAngles2(u, d, uMag, vMag) {
-    var dots = dot2(u,d,uMag,vMag);
-    var mags = uMag * vMag;
-    return  Math.acos(dot2(u, d) / (uMag * vMag));
-}
-
 function nearlyEqual(a, b, esp) {
     let diff = Math.abs(a - b);
     if (diff <= esp) {
@@ -78,16 +64,6 @@ class Object {
     }
 }
 
-
-function redirect(v, theta) {
-        var dx = 0;
-        var dy = 0;
-        dx = v.dx * Math.cos(2*theta) + v.dy * Math.sin(2*theta);
-        dy = v.dx * Math.sin(2*theta) + - v.dy * -Math.cos(2*theta);
-        v.dx = dx;
-        v.dy = dy;
-    }
-
 class Circle extends Object {
     constructor(m, x, y, r, dx, dy, fill, canvas) {
         super(m, x, y, dx, dy)
@@ -110,12 +86,11 @@ class Circle extends Object {
     }
 
     incedentAngle(v) {
-        var dx = this.xDistanceFrom(v)
-        var dy = this.yDistanceFrom(v)
-        var distanceVector = { dx : dx,
-                               dy : dy,
-                               mag : Math.sqrt(dx**2 + dy**2) }
-        return vectorAngles2(this, distanceVector, this.mag(), distanceVector.mag)
+        return Math.atan2(this.yDistanceFrom(v), this.xDistanceFrom(v));
+    }
+
+    originAngle() {
+        return Math.atan2(this.dy, this.dx); 
     }
 
     doCollisions(objects) {
@@ -128,23 +103,76 @@ class Circle extends Object {
             let radiusSumSq = (this.r + objects[i].r) * (this.r + objects[i].r);
 
 	    if (distanceSq <= radiusSumSq + esp && !this.hasCollided(objects[i])) {
-                console.log("COLLISION");
+                //console.log("COLLISION");
+
+                // Taken from https://williamecraver.wixsite.com/elastic-equations
+
                 // let theta = vectorAngles(this, objects[i]);
-		        let theta = this.incedentAngle(objects[i], distanceSq);
+                let t1 = this.originAngle();        // theta1
+                let t2 = objects[i].originAngle();  // Theta2
+                let ia = this.incedentAngle(objects[i]); // iangle
 
-                console.log("Theta:", theta);
-                console.log("A1: ", this.dx, this.dy)
-                console.log("A2: ", objects[i].dx, objects[i].dy)
+                let v1 = this.mag();
+                let v2 = objects[i].mag();
+                let m1 = this.m;
+                let m2 = objects[i].m;
+
+                // New x velocity for this
+                let lhs = ((v1 * Math.cos(t1 - ia) * (m1 - m2) + 2*m2*v2*Math.cos(t2 - ia)) / (m1 + m2)) * Math.cos(ia);
+                let rhs = v1 * Math.sin(t1 - ia) * Math.cos(ia + Math.PI / 2.0);
+                let v1fx = lhs + rhs;
+
+                // new y velocity for this
+                lhs = ((v1 * Math.cos(t1 - ia) * (m1 - m2) + 2*m2*v2*Math.cos(t2 - ia)) / (m1 + m2)) * Math.sin(ia);
+                rhs = v1 * Math.sin(t1 - ia) * Math.sin(ia + Math.PI / 2.0);
+                let v1fy = lhs + rhs;
+
+                // new dx for objects[i]
+                lhs = ((v2 * Math.cos(t2 - ia) * (m2 - m1) + 2 * m1 * v1 * Math.cos(t1 - ia)) / (m1 + m2)) * Math.cos(ia);
+                rhs = v2 * Math.sin(t2 - ia) * Math.cos(ia + Math.PI / 2.0);
+                let v2fx = lhs + rhs;
                 
-                redirect(this, theta);
-                redirect(objects[i], theta);
+                // new dy for objects[i]
+                lhs = ((v2 * Math.cos(t2 - ia) * (m2 - m1) + 2 * m1 * v1 * Math.cos(t1 - ia)) / (m1 + m2)) * Math.sin(ia);
+                rhs = v2 * Math.sin(t2 - ia) * Math.sin(ia + Math.PI / 2.0);
+                let v2fy = lhs + rhs;
 
-                console.log("B1: ", this.dx, this.dy)
-                console.log("B2: ", objects[i].dx, objects[i].dy)
+
+                let mdx = m1 * this.dx + m2 * objects[i].dx;
+                let mdy = m1 * this.dy + m2 * objects[i].dy;
+
+
+                if (nearlyEqual(v1fx, 0.0, 0.0005)) {
+                    this.dx = 0.0;
+                } else  {
+                    this.dx = v1fx;
+                }
+
+                if (nearlyEqual(v1fy, 0.0, 0.0005)) {
+                    this.dy = 0.0;
+                } else  {
+                    this.dy = v1fy;
+                }
+
+                if (nearlyEqual(v2fx, 0.0, 0.0005)) {
+                    objects[i].dx = 0.0;
+                } else  {
+                    objects[i].dx = v2fx;
+                }
+                
+                if (nearlyEqual(v2fy, 0.0, 0.0005)) {
+                    objects[i].dy = 0.0;
+                } else  {
+                    objects[i].dy = v2fy;
+                }
+
+                let mpdx = m1 * this.dx + m2 * objects[i].dx;
+                let mpdy = m1 * this.dy + m2 * objects[i].dy;
+
+                //console.log(mdx, mdy, mpdx, mpdy);
 
                 this.collided(objects[i]);
                 objects[i].collided(this);
-                pause();
             } 
         }
     }
@@ -213,7 +241,8 @@ function randomCircle(cvns) {
     r = Math.floor(Math.random() * (maxR - minR) + minR);
     dx = Math.floor(Math.random() * (maxDx - minDx) + minDx);
     dy = Math.floor(Math.random() * (maxDy - minDy) + minDy);
-    return new Circle(1, x, y, r, dx, dy, false, cvns)
+    m = Math.floor(Math.random() * (massMax - massMin) + massMin);
+    return new Circle(r, x, y, r, dx, dy, false, cvns)
 }
 
 function randomBalls(n) {
@@ -223,8 +252,8 @@ function randomBalls(n) {
 }
 
 function test2DHoriz() {
-    objects.push(new Circle(1, 200, 250, 10, 5, 0, false, cvns));
-    objects.push(new Circle(1, 600, 250, 10, -5, 0, false, cvns));
+    objects.push(new Circle(1, 200, 250, 10, 20, 0, false, cvns));
+    objects.push(new Circle(1, 600, 250, 10, -20, 0, false, cvns));
 }
 
 function test2DVert() {
@@ -233,13 +262,16 @@ function test2DVert() {
 }
 
 function testGlanceVert() {
-    objects.push(new Circle(1, 210, 150, 10, 0, 5, false, cvns));
-    objects.push(new Circle(1, 200, 250, 10, 0, -5, true, cvns));
+    objects.push(new Circle(1, 210, 150, 10, 0, 1, false, cvns));
+    objects.push(new Circle(1, 200, 250, 10, 0, -1, true, cvns));
 }
 
 function testGlanceHoriz() {
-    objects.push(new Circle(1, 250, 260, 10, -5, 0, false, cvns));
-    objects.push(new Circle(1, 200, 250, 10, 5, 0, true, cvns));
+    objects.push(new Circle(1, 250, 160, 10, -2, 0, false, cvns));
+    objects.push(new Circle(1, 200, 150, 10, 2, 0, true, cvns));
+
+    objects.push(new Circle(1, 250, 260, 10, -1, 0, false, cvns));
+    objects.push(new Circle(1, 200, 250, 10, 1, 0, true, cvns));
 }
 
 function diagnalTest() {
@@ -248,8 +280,8 @@ function diagnalTest() {
 }
 
 function testGlanceDiag() {
-    objects.push(new Circle(1, 150, 150, 10, 10, 10, false, cvns));
-    objects.push(new Circle(1, 250, 260, 10, -10, -10, true, cvns));
+    objects.push(new Circle(1, 150, 150, 10, 1, 1, false, cvns));
+    objects.push(new Circle(1, 250, 260, 10, -1, -1, true, cvns));
 }
 
 function sameDirection() {
@@ -259,26 +291,28 @@ function sameDirection() {
 
 
 var esp = 50;
-
-var maxDx = 10;
-var minDx = 1;
-var maxDy = 10;
-var minDy = 1;
-var maxR = 10;
-var minR = 20;
+var nRandomBalls = 300;
+var massMin = 1;
+var massMax = 20;
+var minDx = -5;
+var maxDx = 5;
+var minDy = -5;
+var maxDy = 5;
+var maxR = 1;
+var minR = 10;
 var cvns;
 var objects = [];
-var x = 500;
+var x = 800;
 var y = 500;
-var time = 60;
+var time = 10;
 
 
 function draw() {
     cvns = new Canvas(x, y);
 
-    //randomBalls(4);
+    randomBalls(nRandomBalls);
 
-    sameDirection();
+    //sameDirection();
     
     //test2DHoriz();
     
