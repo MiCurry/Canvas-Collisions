@@ -10,4 +10,4 @@ http://ec2-18-237-246-6.us-west-2.compute.amazonaws.com/Canvas-Collisions/canvas
 
 * Random Circle function places circles ontop of other circles
 * Circles generated too close to the edge (their radius goes off the canvas) get stuck
-* Sometimes balls get 'stuck' together. I'm not sure why this is occuring!
+* Sometimes balls get 'stuck' together. I'm not sure why this is occuring! But it seems to be when three balls are colliding.
