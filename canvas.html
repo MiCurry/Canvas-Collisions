@@ -3,15 +3,118 @@
   <head>
     <meta charset="utf-8"/>
     <title>Canvas tutorial</title>
+    <link rel="stylesheet" href="canvas.css">
     <script src="script.js"></script>
     <style>
       canvas { border: 1px solid black; }
     </style>
 
   </head>
-  <body onload="draw();">
-    <canvas id="canvas" width="800" height="500"></canvas>
-  </body>
+  <body onload="draw()">
 
+    <div class="main-box">
+    <div id="canvas-div" class="box">
+        <canvas id="canvas" width="800" height="500"></canvas>
+    </div>
+
+    <div id="information" class="box"> 
+        <p>The canvas size is 800 x 500. (0,0) is in the top left, (800, 500) in the bottom right. All objects are added to an object list.
+        The animation function works in the following steps:</p>
+
+        <ol> 
+            <li>The canvas is cleared of the previous drawing.</li>
+            <li>Each objects collision list is cleared.</li>
+            <li>Each object determines if it is colliding with another object and if it is, it calculates the redirection for both it and the object it collides with. 
+                Once objects have collided, they both add each other to their collision list (I'm not sure if this is needed).</li>
+            <li>Each objects next position is calculated.</li>
+            <li>Each objects is redrawn on the screen.</li>
+        </ol>
+    </div>
+    </div>
+
+    <div class="second-box">
+    <div id="controls" class="box">
+        <h1>Controls</h1>
+        <div class="variable-group">
+            <label for="time">update delay (ms): <input value=20 id="time" type="text"></input>
+        </div>
+        <form name="testSelectionForm">
+            <select name="testSelector" id='test-selector' onchange="draw()">
+                <option value="randomBalls">--Please choose an option</option>
+                <option value="randomBalls">Random</option>
+                <option value="sameDirection">Test - Same Direction</option>
+                <option value="test2DHoriz">Test - 1D Horizontal Collision</option>
+                <option value="test2DVert">Test - 1D Vertical Collision</option>
+                <option value="diagnalTest">Test - Diagnal Collision</option>
+                <option value="testGlanceDiag">Test - Glance Diagnal Collision</option>
+                <option value="testGlanceVert">Test - Glance Vert Collision</option>
+                <option value="testGlanceHoriz">Test - Glance Horiz Collision</option>
+                <option value="custom">Custom Test</option>
+            </select>
+        </form>
+
+        <form name="variableSelections">
+            <p> The below options effect ball creation in only the Random Ball test.</p>
+            <div class="variable-group">
+                <label for="nRandomBalls">Random Balls: </label><input value=20 id="nRandomBalls" type="text"></input>
+            </div>
+            <div class="variable-group">
+                <label for="min-radius">Min Radius (mass): </label><input value=5 id="min-radius" type="text"></input>
+            </div>
+            <div class="variable-group">
+                <label for="max-radius">Max Radius (mass): <input value=15 id="max-radius" type="text"></input>
+            </div>
+            <div class="variable-group">
+                <label for="min-dx">Min Dx: <input value=-2 id="min-dx" type="text"></input>
+            </div>
+            <div class="variable-group">
+                <label for="max-dx">Max Dx: <input value=2 id="max-dx" type="text"></input>
+            </div>
+            <div class="variable-group">
+                <label for="min-dy">Min Dy: <input value=-2 id="min-dy" type="text"></input>
+            </div>
+            <div class="variable-group">
+                <label for="max-dx">Max Dy: <input value=2 id="max-dy" type="text"></input>
+            </div>
+            <button type="button" onclick="draw()">Reset</button>
+        </form>
+    </div>
+
+    <div id="custom-circle" class="box">
+        <h1>Custom Circle</h1>
+        <p>Add a ball to the current simulation.</p>
+        <form name="custom-circle-form">
+            <div class="variable-group">
+                <label for="mass">Mass: <input value=20 id="mass" type="text"></input>
+            </div>
+            <div class="variable-group">
+                <label for="x">x: <input value=400 id="x" type="text"></input>
+            </div>
+            <div class="variable-group">
+                <label for="y">y: <input value=250 id="y" type="text"></input>
+            </div>
+            <div class="variable-group">
+                <label for="r">r: <input value=10 id="r" type="text"></input>
+            </div>
+            <div class="variable-group">
+                <label for="dx">dx: <input value=0 id="dx" type="text"></input>
+            </div>
+            <div class="variable-group">
+                <label for="dy">dy: <input value=5 id="dy" type="text"></input>
+            </div>
+            <div class="variable-group">
+                <label for"fill">Fill: <input id="fill" type="checkbox" ></input>
+            </div>
+            <p>For color, you can use CSS color value, or words, like red and blue.</p>
+            <div class="variable-group">
+                <label for="color">color: <input value=blue id="color" type="text"></input>
+            </div>
+            <button type="button" onclick="addCircle()">Add Circle</button>
+        </form>
+    </div>
+    </div>
+
+
+  </body>
 </html>
 

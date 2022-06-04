@@ -4,7 +4,7 @@ var isPaused = false;
 
 document.onkeypress = function(p) {
     p = p || window.event;
-    pause();
+    //pause();
 };
 
 function pause() {
@@ -36,6 +36,11 @@ class Canvas {
     clear() {
         this.ctx.clearRect(0, 0, this.width, this.height);
     }
+
+    reset() {
+        objects = [];
+        clearInterval(animation)
+    }
 }
 
 class Object {
@@ -65,11 +70,16 @@ class Object {
 }
 
 class Circle extends Object {
-    constructor(m, x, y, r, dx, dy, fill, canvas) {
+    constructor(m, x, y, r, dx, dy, fill, canvas, color) {
         super(m, x, y, dx, dy)
         this.r = r;
         this.fill = fill; // True for fill, false for stroke
         this.canvas = canvas;
+        if (color) {
+            this.color = color;
+        } else {
+            this.color = "black";
+        }
     }
 
     // Squared distance from an object
@@ -201,6 +211,8 @@ class Circle extends Object {
     
     _drawCircle(ctx, x, y, r, fill) {
         let circle = new Path2D();
+        ctx.fillStyle = this.color;
+        ctx.strokeStyle = this.color;
         circle.arc(x, y, r, 0, Math.PI * 2, true);
         if (fill == true) {
             ctx.fill(circle);
@@ -252,8 +264,8 @@ function randomBalls(n) {
 }
 
 function test2DHoriz() {
-    objects.push(new Circle(1, 200, 250, 10, 20, 0, false, cvns));
-    objects.push(new Circle(1, 600, 250, 10, -20, 0, false, cvns));
+    objects.push(new Circle(1, 200, 250, 10, 5, 0, false, cvns));
+    objects.push(new Circle(1, 600, 250, 10, -5, 0, false, cvns));
 }
 
 function test2DVert() {
@@ -291,13 +303,13 @@ function sameDirection() {
 
 
 var esp = 50;
-var nRandomBalls = 300;
+var nRandomBalls = 100;
 var massMin = 1;
 var massMax = 20;
-var minDx = -5;
-var maxDx = 5;
-var minDy = -5;
-var maxDy = 5;
+var minDx = -10;
+var maxDx = 20;
+var minDy = -20;
+var maxDy = 10;
 var maxR = 1;
 var minR = 10;
 var cvns;
@@ -306,26 +318,76 @@ var x = 800;
 var y = 500;
 var time = 10;
 
+function getHtmlEleValue(id) {
+    return document.getElementById(id).value;
+}
+
+function getHtmlCheckBox(id) {
+    return document.getElementById(id).checked;
+}
+
+function addCircle() {
+    pause();
+    let m = parseFloat(getHtmlEleValue("mass"));
+    let x = parseFloat(getHtmlEleValue("x"));
+    let y = parseFloat(getHtmlEleValue("y"));
+    let r = parseFloat(getHtmlEleValue("r"));
+    let dx = parseFloat(getHtmlEleValue("dx"));
+    let dy =  parseFloat(getHtmlEleValue("dy"));
+    let fill = getHtmlCheckBox("fill");
+    let color = getHtmlEleValue("color");
+   
+    objects.push(new Circle(m, x, y, r, dx, dy, fill, cvns, color));
+    pause();
+}
 
 function draw() {
-    cvns = new Canvas(x, y);
 
-    randomBalls(nRandomBalls);
+    if (!cvns) {
+        cvns = new Canvas(x, y);
+    } else {
+        cvns.clear();
+        cvns.reset();
+    }
 
-    //sameDirection();
+    testSelect = getHtmlEleValue("test-selector");
+    nRandomBalls = getHtmlEleValue("nRandomBalls");
+    minR = parseFloat(getHtmlEleValue("min-radius"));
+    maxR = parseFloat(getHtmlEleValue("max-radius"));
+    minDx = parseFloat(getHtmlEleValue("min-dx"));
+    maxDx = parseFloat(getHtmlEleValue("max-dx"));
+    minDy = parseFloat(getHtmlEleValue("min-dy"));
+    maxDy = parseFloat(getHtmlEleValue("max-dy"))
+    time = getHtmlEleValue("time");
     
-    //test2DHoriz();
-    
-    //test2DVert();
-
-    //diagnalTest();
-
-    //testGlanceDiag();
-
-    //testGlanceVert();
-
-    //testGlanceHoriz();
-    
+    switch (testSelect) {
+        case "randomBalls":
+            randomBalls(nRandomBalls);
+            break;
+        case "sameDirection":
+            sameDirection();
+            break;
+        case "test2DHoriz":
+            test2DHoriz();
+            break;
+        case "test2DVert":
+            test2DVert();
+            break;
+        case "diagnalTest":
+            diagnalTest();
+            break;
+        case "testGlanceDiag":
+            testGlanceDiag();
+            break;
+        case "testGlanceVert":
+            testGlanceVert();
+            break;
+        case "testGlanceHoriz":
+            testGlanceHoriz();
+            break;
+        case "custom":
+            break;
+    }
 
     animation = setInterval(doAnim, time)
 }

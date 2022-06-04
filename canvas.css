@@ -1,0 +1,28 @@
+.variable-group label input {
+    display:inline-block;
+}
+
+#canvas-div {
+    width: 800px;
+}
+
+#information {
+    padding: 10px;
+    width: 50%;
+}
+
+#controls {
+    width:25%;
+}
+
+#custom-circle {
+    width:25%;
+}
+
+.main-box {
+    display: flex;
+}
+
+.second-box {
+    display: flex;
+}
