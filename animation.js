@@ -1,6 +1,7 @@
 var animation;
 var isPaused = false;
 
+
 function doAnim() {
     
     ctx = cvns.ctx;

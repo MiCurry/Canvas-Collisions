@@ -9,11 +9,48 @@ class Circle extends Object {
         } else {
             this.color = "black";
         }
+
+        console.log(this.canvas);
+        this.canvas.canvas.addEventListener('mousedown', this.popOnClick.bind(this), true)
+
+    }
+
+
+    popOnClick(evt) {
+        if (this.isObjtColliding(this.canvas.getMousePos(evt))){
+            this.pop();
+        } 
+    }
+
+    pop() {
+        console.log("pop!");
+        this.canvas.removeObjt(this);
     }
 
     // Squared distance from an object
     squaredDistanceFrom(obj) {
         return (this.x - obj.x)**2  + (this.y - obj.y)**2 ;
+    }
+
+    isObjtColliding(obj) {
+        let distanceSq = this.squaredDistanceFrom(obj);
+
+        if (distanceSq <= this.r**2) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    isCircleColliding(circle) {
+        let distanceSq = this.squaredDistanceFrom(objects[i]);
+        let radiusSumSq = (this.r + objects[i].r) * (this.r + objects[i].r);
+
+        if (distanceSq <= radiusSumSq) { 
+            return true;
+        }
+
+        return false;
     }
 
     xDistanceFrom(obj) {

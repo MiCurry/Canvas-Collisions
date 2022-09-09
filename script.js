@@ -117,14 +117,24 @@ function addCircle() {
     pause();
 }
 
+
+
 function draw() {
 
     if (!cvns) {
-        cvns = new Canvas(x, y);
+        cvns = new Canvas(x, y, objects);
     } else {
         cvns.clear();
         cvns.reset();
     }
+
+    cvns.canvas.addEventListener('mousemove', function(evt) {
+        var mousePos = cvns.getMousePos(evt);
+    }, false);
+
+    cvns.canvas.addEventListener('mousedown', function(evt) {
+        var mousePos = cvns.getMousePos(evt);
+    }, false);
 
     testSelect = getHtmlEleValue("test-selector");
     nRandomBalls = getHtmlEleValue("nRandomBalls");
